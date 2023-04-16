@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Dapper;
+
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Data;
-using Dapper;
-using System.Collections.Generic;
-using Versioning.App.Models;
-using System.Linq;
-using System.Configuration;
+using Microsoft.Extensions.Configuration;
+
 using Oracle.ManagedDataAccess.Client;
+
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+
+using Versioning.App.Models;
 
 
 namespace Versioning.App.Controllers
@@ -25,12 +29,14 @@ namespace Versioning.App.Controllers
         }
         public ActionResult Index()
         {
-            //var DBconnection = GetConfiguration("DBconnection");
+            var configurationRoot = new ConfigurationBuilder().AddJsonFile("appsettings.json", optional: false).Build();
+            var DBconnection = configurationRoot.GetConnectionString("DBconnection");
 
             List<VER_MAIN> VersionList = new List<VER_MAIN>();
-            using (IDbConnection db = new OracleConnection(ConfigurationManager.ConnectionStrings["Data Source=(description=(address=(protocol=tcp)(host=192.168.20.120)(port=1521))(connect_data=(service_name=cbrm)));user id=scott;password=s123;"].ConnectionString))
-            {
 
+            //using (IDbConnection db = new OracleConnection("Data Source=(description=(address=(protocol=tcp)(host=192.168.20.120)(port=1521))(connect_data=(service_name=cbrm)));user id=scott;password=s123;"))
+            using (IDbConnection db = new OracleConnection(DBconnection))
+            {
                 VersionList = db.Query<VER_MAIN>(@" SELECT * FROM VER_MAIN ").ToList();
             }
             return View(VersionList);
